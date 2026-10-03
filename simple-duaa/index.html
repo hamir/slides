@@ -1,0 +1,520 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Duas Phrase by Phrase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Alegreya:ital,wght@0,500;0,700;1,500&family=Noto+Naskh+Arabic:wght@400;500&display=swap">
+<style>
+  /* Layout: one narrow reading column. Tabs pick a theme; each dua shows the full Arabic,
+     as stacked phrase pairs (Arabic on top, meaning underneath, centered). Lapis and gold, after mushaf illumination. */
+  :root {
+    --bg: #F1F4F9;
+    --surface: #FBFCFE;
+    --ink: #15213A;
+    --muted: #56627C;
+    --rule: #D3DAE7;
+    --lapis: #1E4A8C;
+    --lapis-soft: #E2EAF6;
+    --gold: #94701F;
+    --font-ar: "Noto Naskh Arabic", "Geeza Pro", "Segoe UI", "Tahoma", sans-serif;
+    --font-display: "Alegreya", Georgia, "Times New Roman", serif;
+    --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0C1423;
+      --surface: #121D32;
+      --ink: #E7ECF5;
+      --muted: #9BA7BF;
+      --rule: #27344E;
+      --lapis: #9CBDF0;
+      --lapis-soft: #1A2946;
+      --gold: #D8B565;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0C1423;
+    --surface: #121D32;
+    --ink: #E7ECF5;
+    --muted: #9BA7BF;
+    --rule: #27344E;
+    --lapis: #9CBDF0;
+    --lapis-soft: #1A2946;
+    --gold: #D8B565;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 760px;
+    margin-inline: auto;
+    padding-inline: 16px;
+    padding-block: 40px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Header */
+  .masthead { display: flex; flex-direction: column; gap: 6px; }
+  .masthead .ar-word {
+    font-family: var(--font-ar);
+    font-size: 1.7rem;
+    line-height: 1.7;
+    color: var(--gold);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .masthead p { margin: 4px 0 0; color: var(--muted); max-width: 58ch; }
+
+  /* Tabs */
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tab {
+    font: inherit;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+  .tab .count { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tab:hover { background: var(--lapis-soft); }
+  .tab[aria-selected="true"] { background: var(--lapis); border-color: var(--lapis); color: var(--surface); }
+  .tab[aria-selected="true"] .count { color: var(--surface); opacity: 0.8; }
+  .tab:focus-visible, .copy:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* Dua list */
+  .panel { display: flex; flex-direction: column; gap: 20px; }
+  .dua {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 18px 20px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dua-head { display: flex; align-items: center; gap: 12px; }
+  .num {
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .num::before, .num::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1.5px solid var(--gold);
+  }
+  .num::after { transform: rotate(45deg); }
+  .num span { position: relative; }
+  .dua-title { flex: 1; min-width: 0; }
+  .dua-title h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .src {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .copy {
+    flex: none;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--lapis);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .copy:hover { background: var(--lapis-soft); }
+
+  .phrases { list-style: none; margin: 0; padding: 0; }
+  .phrases li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    padding-block: 12px 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .en { color: var(--ink); max-width: 46ch; }
+  .ar {
+    font-family: var(--font-ar);
+    font-size: 1.55rem;
+    line-height: 1.9;
+    direction: rtl;
+    text-align: center;
+    color: var(--lapis);
+  }
+
+  .note {
+    border-top: 1px solid var(--rule);
+    padding-block: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .note-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .note p { margin: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.5; max-width: 66ch; }
+
+  .footnote {
+    color: var(--muted);
+    font-size: 0.88rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    max-width: 65ch;
+    margin: 0;
+  }
+
+  @media (max-width: 480px) {
+    .dua { padding: 14px 14px 6px; }
+    .ar { font-size: 1.35rem; }
+    .en { font-size: 0.95rem; }
+  }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <span class="ar-word" lang="ar" dir="rtl">أَدْعِيَة</span>
+    <h1>Duas, phrase by phrase</h1>
+    <p>25 short supplications from the Qurʾān and Sunnah. Each one is split into phrases, with the meaning under the Arabic and a short note on where it comes from.</p>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Themes"></nav>
+
+  <main class="panel" id="panel" role="tabpanel"></main>
+
+  <p class="footnote">Copy puts a dua on your clipboard as alternating Arabic and English lines, ready to paste into a message. Translations are phrase-level renderings meant for learning, so the wording follows the Arabic phrase order. The commentary notes summarise the hadith narrations and classical tafsīr around each dua.</p>
+</div>
+
+<script>
+(function () {
+  var TABS = [
+    { id: "praise", label: "Praise" },
+    { id: "gratitude", label: "Gratitude" },
+    { id: "help", label: "Seeking help" },
+    { id: "forgiveness", label: "Forgiveness" },
+    { id: "guidance", label: "Guidance & knowledge" },
+    { id: "both-worlds", label: "Both worlds" }
+  ];
+
+  var DUAS = [
+    /* Praise */
+    { tab: "praise", name: "Light on the tongue, heavy on the scale", note: "Abū Hurayrah narrated that the Prophet ﷺ called these “two phrases that are light on the tongue, heavy on the scale, and beloved to the Most Merciful.” It is the hadith al-Bukhārī chose to close his Ṣaḥīḥ. Commentators explain that tasbīḥ declares Allah free of every flaw while ḥamd affirms His perfection, so the pair is complete praise.", src: "Bukhārī 6406 · Muslim 2694", phrases: [
+      ["سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", "Glory be to Allah, and praise be to Him"],
+      ["سُبْحَانَ اللَّهِ الْعَظِيمِ", "Glory be to Allah, the Most Great"]
+    ]},
+    { tab: "praise", name: "He alone, without partner", note: "Abū Hurayrah narrated that whoever says this a hundred times in a day receives the reward of freeing ten slaves, has a hundred good deeds written and a hundred sins erased, and is protected from Shayṭān that day until evening. No one brings anything better except someone who said it more.", src: "Bukhārī 6403 · Muslim 2691", phrases: [
+      ["لَا إِلَٰهَ إِلَّا اللَّهُ", "There is no god but Allah"],
+      ["وَحْدَهُ لَا شَرِيكَ لَهُ", "alone, without any partner"],
+      ["لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ", "His is the dominion and His is the praise"],
+      ["وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ", "and He has power over all things"]
+    ]},
+    { tab: "praise", name: "Abundant, pure, blessed praise", note: "Said after rising from rukūʿ. Rifāʿah ibn Rāfiʿ narrated that a man added these words behind the Prophet ﷺ in prayer. Afterwards the Prophet ﷺ asked who had spoken and said he saw more than thirty angels racing to be the first to write it down.", src: "Bukhārī 799", phrases: [
+      ["رَبَّنَا وَلَكَ الْحَمْدُ", "Our Lord, to You belongs all praise"],
+      ["حَمْدًا كَثِيرًا", "praise that is abundant"],
+      ["طَيِّبًا مُبَارَكًا فِيهِ", "pure and full of blessing"]
+    ]},
+    { tab: "praise", name: "Closing a gathering", note: "Known as kaffārat al-majlis, the expiation of a gathering. Abū Hurayrah narrated that whoever sits in a gathering with much idle talk and says this before getting up is forgiven for what took place in it.", src: "Tirmidhī 3433", phrases: [
+      ["سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ", "Glory be to You, O Allah, and praise be to You"],
+      ["أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا أَنْتَ", "I bear witness that there is no god but You"],
+      ["أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ", "I seek Your forgiveness and turn to You in repentance"]
+    ]},
+
+    /* Gratitude */
+    { tab: "gratitude", name: "Enable me to be grateful", note: "Sulaymān said this, smiling, after hearing an ant warn her colony about his army. Commentators explain awziʿnī as “inspire me and hold me to it”: the root carries the sense of restraining, so the request is to be kept from drifting away from gratitude. The verse goes on to ask for righteous deeds that please Allah. The same words appear in 46:15 as the dua of a person who reaches forty.", src: "Qurʾān 27:19", phrases: [
+      ["رَبِّ أَوْزِعْنِي", "My Lord, enable me"],
+      ["أَنْ أَشْكُرَ نِعْمَتَكَ", "to be grateful for Your blessing"],
+      ["الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ", "which You have bestowed upon me and my parents"]
+    ]},
+    { tab: "gratitude", name: "When something good happens", note: "ʿĀʾishah narrated that the Prophet ﷺ said this when he saw something he liked. When he saw something he disliked he said al-ḥamdu lillāhi ʿalā kulli ḥāl, “praise be to Allah in every circumstance.”", src: "Ibn Mājah 3803", phrases: [
+      ["الْحَمْدُ لِلَّهِ", "All praise is for Allah"],
+      ["الَّذِي بِنِعْمَتِهِ", "by whose favor"],
+      ["تَتِمُّ الصَّالِحَاتُ", "good things are completed"]
+    ]},
+    { tab: "gratitude", name: "After eating", note: "Muʿādh ibn Anas narrated that whoever eats and then says this has their past sins forgiven. The last phrase admits that even food a person worked for reached them only by Allah’s provision.", src: "Tirmidhī 3458", phrases: [
+      ["الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَٰذَا", "All praise is for Allah, who fed me this"],
+      ["وَرَزَقَنِيهِ", "and provided it for me"],
+      ["مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ", "without any power or strength of my own"]
+    ]},
+    { tab: "gratitude", name: "Help me remember and thank You", note: "The Prophet ﷺ took Muʿādh ibn Jabal by the hand, told him “By Allah, I love you,” and advised him never to leave these words at the end of every prayer. Scholars differ on whether that means just before the closing salām or after it.", src: "Abū Dāwūd 1522", phrases: [
+      ["اللَّهُمَّ أَعِنِّي", "O Allah, help me"],
+      ["عَلَىٰ ذِكْرِكَ", "to remember You"],
+      ["وَشُكْرِكَ", "to thank You"],
+      ["وَحُسْنِ عِبَادَتِكَ", "and to worship You well"]
+    ]},
+
+    /* Seeking help */
+    { tab: "help", name: "The dua of Mūsā for ease", note: "Mūsā made this dua when he was sent to confront Firʿawn. It continues: “and untie the knot from my tongue so that they may understand my speech” (20:27–28). Commentators explain the expanded chest as the capacity to carry the mission and bear its hardship. It is often recited before speaking or teaching.", src: "Qurʾān 20:25–26", phrases: [
+      ["رَبِّ اشْرَحْ لِي صَدْرِي", "My Lord, expand my chest for me"],
+      ["وَيَسِّرْ لِي أَمْرِي", "and make my task easy for me"]
+    ]},
+    { tab: "help", name: "Allah is enough for us", note: "The believers said this after Uḥud when they were told an army had gathered against them, and it only increased their faith. The next verse says they returned with Allah’s favor, untouched by harm. Ibn ʿAbbās said Ibrāhīm spoke the same words when he was thrown into the fire (Bukhārī 4563).", src: "Qurʾān 3:173", phrases: [
+      ["حَسْبُنَا اللَّهُ", "Allah is sufficient for us"],
+      ["وَنِعْمَ الْوَكِيلُ", "and He is the best Disposer of affairs"]
+    ]},
+    { tab: "help", name: "Do not leave me to myself", note: "Anas narrated that the Prophet ﷺ taught his daughter Fāṭimah to say this every morning and evening. In a related narration he would call on Allah with yā Ḥayyu yā Qayyūm whenever something distressed him (Tirmidhī 3524).", src: "An-Nasāʾī (al-Kubrā) · Al-Ḥākim", phrases: [
+      ["يَا حَيُّ يَا قَيُّومُ", "O Ever-Living, O Sustainer of all"],
+      ["بِرَحْمَتِكَ أَسْتَغِيثُ", "in Your mercy I seek relief"],
+      ["أَصْلِحْ لِي شَأْنِي كُلَّهُ", "set right all my affairs for me"],
+      ["وَلَا تَكِلْنِي إِلَىٰ نَفْسِي طَرْفَةَ عَيْنٍ", "and do not leave me to myself for the blink of an eye"]
+    ]},
+    { tab: "help", name: "Make the difficult easy", note: "Narrated by Anas. Ḥazn means rough, hard ground, the opposite of sahl, level ground. The picture is of Allah levelling rough terrain for whoever asks Him.", src: "Ibn Ḥibbān 974", phrases: [
+      ["اللَّهُمَّ لَا سَهْلَ", "O Allah, nothing is easy"],
+      ["إِلَّا مَا جَعَلْتَهُ سَهْلًا", "except what You make easy"],
+      ["وَأَنْتَ تَجْعَلُ الْحَزْنَ", "and You make the difficult"],
+      ["إِذَا شِئْتَ سَهْلًا", "easy, if You will"]
+    ]},
+    { tab: "help", name: "Refuge from worry and grief", note: "Anas, who served the Prophet ﷺ, said he often heard him make this dua. Ibn al-Qayyim observed that the eight things come in four pairs: worry is about what is coming and grief about what has passed; incapacity is lacking the ability and laziness lacking the will; cowardice withholds the self and miserliness withholds wealth; debt and being overpowered are two ways of being under other people’s control.", src: "Bukhārī 6369", phrases: [
+      ["اللَّهُمَّ إِنِّي أَعُوذُ بِكَ", "O Allah, I seek refuge in You"],
+      ["مِنَ الْهَمِّ وَالْحَزَنِ", "from worry and grief"],
+      ["وَالْعَجْزِ وَالْكَسَلِ", "from incapacity and laziness"],
+      ["وَالْجُبْنِ وَالْبُخْلِ", "from cowardice and miserliness"],
+      ["وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ", "from the burden of debt and being overpowered by others"]
+    ]},
+    { tab: "help", name: "The dua of Yūnus", note: "Yūnus called out from “the darknesses,” which commentators list as the night, the sea, and the belly of the whale. The next verse says Allah answered and saved him, “and thus We save the believers.” The Prophet ﷺ said no Muslim calls on Allah with these words about anything without being answered (Tirmidhī 3505). It joins tawḥīd, glorification, and an admission of fault.", src: "Qurʾān 21:87", phrases: [
+      ["لَا إِلَٰهَ إِلَّا أَنْتَ", "There is no god but You"],
+      ["سُبْحَانَكَ", "glory be to You"],
+      ["إِنِّي كُنْتُ مِنَ الظَّالِمِينَ", "indeed, I have been among the wrongdoers"]
+    ]},
+
+    /* Forgiveness */
+    { tab: "forgiveness", name: "For me, my parents and the believers", note: "This shortens the dua of Nūḥ that closes Sūrat Nūḥ. The full verse also asks for “whoever enters my house as a believer, and the believing men and believing women.” Ibrāhīm makes a similar dua in 14:41. Commentators point to the order: oneself first, then parents, then every believer.", src: "After Qurʾān 71:28", phrases: [
+      ["رَبِّ اغْفِرْ لِي", "My Lord, forgive me"],
+      ["وَلِوَالِدَيَّ", "and my parents"],
+      ["وَلِلْمُؤْمِنِينَ", "and the believers"]
+    ]},
+    { tab: "forgiveness", name: "The dua of Ādam and Ḥawwāʾ", note: "Ādam and Ḥawwāʾ said this after eating from the tree. Many commentators identify it as the “words” Ādam received from his Lord in 2:37. They contrast it with Iblīs, who blamed Allah for his sin and did not repent.", src: "Qurʾān 7:23", phrases: [
+      ["رَبَّنَا ظَلَمْنَا أَنْفُسَنَا", "Our Lord, we have wronged ourselves"],
+      ["وَإِنْ لَمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا", "and if You do not forgive us and have mercy upon us"],
+      ["لَنَكُونَنَّ مِنَ الْخَاسِرِينَ", "we will surely be among the losers"]
+    ]},
+    { tab: "forgiveness", name: "You love to pardon", note: "ʿĀʾishah asked the Prophet ﷺ what she should say if she knew which night was Laylat al-Qadr, and he taught her this. Scholars explain ʿafw as wiping a sin away completely, which goes beyond covering it.", src: "Tirmidhī 3513", phrases: [
+      ["اللَّهُمَّ إِنَّكَ عَفُوٌّ", "O Allah, You are Most Pardoning"],
+      ["تُحِبُّ الْعَفْوَ", "You love to pardon"],
+      ["فَاعْفُ عَنِّي", "so pardon me"]
+    ]},
+
+    /* Guidance & knowledge */
+    { tab: "guidance", name: "Hearts that stay guided", note: "This is the dua of those firmly grounded in knowledge. It follows 3:7, which describes people whose hearts deviate chasing the ambiguous verses. The verse ends “Indeed, You are the Bestower.” Commentators take from it that guidance, once given, still has to be asked for.", src: "Qurʾān 3:8", phrases: [
+      ["رَبَّنَا لَا تُزِغْ قُلُوبَنَا", "Our Lord, do not let our hearts deviate"],
+      ["بَعْدَ إِذْ هَدَيْتَنَا", "after You have guided us"],
+      ["وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً", "and grant us mercy from You"]
+    ]},
+    { tab: "guidance", name: "A firm heart", note: "Anas said the Prophet ﷺ made this dua often. When asked whether he feared for those who believed in him, he said yes: hearts are between two of Allah’s fingers and He turns them as He wills. Umm Salamah said it was the dua he made most (Tirmidhī 3522).", src: "Tirmidhī 2140", phrases: [
+      ["يَا مُقَلِّبَ الْقُلُوبِ", "O Turner of the hearts"],
+      ["ثَبِّتْ قَلْبِي عَلَى دِينِكَ", "keep my heart firm upon Your religion"]
+    ]},
+    { tab: "guidance", name: "Increase me in knowledge", note: "The verse tells the Prophet ﷺ not to hurry with the Qurʾān before its revelation to him is complete, and to say this instead. Commentators note that knowledge is the one thing Allah commanded him to ask for more of.", src: "Qurʾān 20:114", phrases: [
+      ["رَبِّ زِدْنِي", "My Lord, increase me"],
+      ["عِلْمًا", "in knowledge"]
+    ]},
+    { tab: "guidance", name: "Teach us what benefits us", note: "This is the plural of a dua Abū Hurayrah narrated from the Prophet ﷺ: “O Allah, benefit me by what You have taught me, teach me what benefits me, and increase me in knowledge” (Tirmidhī 3599, Ibn Mājah 251). The plural is commonly used when praying for a group, such as at the start of a class.", src: "After Ibn Mājah 251", phrases: [
+      ["اللَّهُمَّ عَلِّمْنَا مَا يَنْفَعُنَا", "O Allah, teach us what benefits us"],
+      ["وَانْفَعْنَا بِمَا عَلَّمْتَنَا", "benefit us by what You have taught us"],
+      ["وَزِدْنَا عِلْمًا", "and increase us in knowledge"]
+    ]},
+    { tab: "guidance", name: "Beneficial knowledge", note: "Umm Salamah narrated that the Prophet ﷺ said this after the salām of the Fajr prayer, so it opens the day. It is often pointed out that knowledge comes first because it is how a person tells good provision and acceptable deeds from their opposites.", src: "Ibn Mājah 925", phrases: [
+      ["اللَّهُمَّ إِنِّي أَسْأَلُكَ", "O Allah, I ask You for"],
+      ["عِلْمًا نَافِعًا", "beneficial knowledge"],
+      ["وَرِزْقًا طَيِّبًا", "good provision"],
+      ["وَعَمَلًا مُتَقَبَّلًا", "and deeds that are accepted"]
+    ]},
+
+    /* Both worlds */
+    { tab: "both-worlds", name: "Good in this world and the next", note: "Anas said this was the dua the Prophet ﷺ made most (Bukhārī 6389, Muslim 2690). The verse before it criticises pilgrims who ask only for this world. Ibn Kathīr reads “good in this world” broadly: health, provision, beneficial knowledge, a righteous spouse. It is also recited in ṭawāf between the Yemeni Corner and the Black Stone.", src: "Qurʾān 2:201", phrases: [
+      ["رَبَّنَا آتِنَا", "Our Lord, give us"],
+      ["فِي الدُّنْيَا حَسَنَةً", "good in this world"],
+      ["وَفِي الْآخِرَةِ حَسَنَةً", "and good in the Hereafter"],
+      ["وَقِنَا عَذَابَ النَّارِ", "and protect us from the punishment of the Fire"]
+    ]},
+    { tab: "both-worlds", name: "Paradise, and refuge from the Fire", note: "The Prophet ﷺ asked a man what he says in his prayer. The man said he recites the tashahhud and then asks for Paradise and refuge from the Fire, adding that he could not manage the Prophet’s murmured supplications or Muʿādh’s. The Prophet ﷺ replied, “We murmur around the same thing.”", src: "Abū Dāwūd 792", phrases: [
+      ["اللَّهُمَّ إِنِّي أَسْأَلُكَ الْجَنَّةَ", "O Allah, I ask You for Paradise"],
+      ["وَأَعُوذُ بِكَ مِنَ النَّارِ", "and I seek refuge in You from the Fire"]
+    ]},
+    { tab: "both-worlds", name: "Righteous offspring", note: "Zakariyyā made this dua on seeing Maryam provided for in her prayer chamber, though he was old and his wife was barren. The angels then called to him while he stood in prayer with the news of Yaḥyā (3:39).", src: "Qurʾān 3:38", phrases: [
+      ["رَبِّ هَبْ لِي", "My Lord, grant me"],
+      ["مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً", "from You, righteous offspring"],
+      ["إِنَّكَ سَمِيعُ الدُّعَاءِ", "Indeed, You are the Hearer of supplication"]
+    ]}
+  ];
+
+  DUAS.forEach(function (d, i) { d.n = i + 1; });
+
+  var tabsEl = document.getElementById("tabs");
+  var panelEl = document.getElementById("panel");
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function shareText(d) {
+    var lines = [d.name + " (" + d.src + ")", ""];
+    d.phrases.forEach(function (p) { lines.push(p[0], p[1]); });
+    return lines.join("\n");
+  }
+
+  function flash(btn, label) {
+    btn.textContent = label;
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function () { btn.textContent = "Copy"; }, 1800);
+  }
+
+  function copyDua(d, btn, card) {
+    var text = shareText(d);
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      ta.remove();
+      if (ok) { flash(btn, "Copied"); return; }
+      try {
+        var range = document.createRange();
+        range.selectNodeContents(card.querySelector(".phrases"));
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch (e) {}
+      flash(btn, "Selected");
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { flash(btn, "Copied"); }, fallback);
+    } catch (e) { fallback(); }
+  }
+
+  function renderDua(d) {
+    var card = el("article", "dua");
+    card.id = "dua-" + d.n;
+
+    var head = el("div", "dua-head");
+    var num = el("div", "num");
+    num.appendChild(el("span", null, String(d.n)));
+    num.setAttribute("aria-hidden", "true");
+    var title = el("div", "dua-title");
+    title.appendChild(el("h2", null, d.name));
+    title.appendChild(el("div", "src", d.src));
+    var btn = el("button", "copy", "Copy");
+    btn.type = "button";
+    btn.id = "copy-" + d.n;
+    btn.setAttribute("aria-label", "Copy dua " + d.n + ", " + d.name);
+    btn.addEventListener("click", function () { copyDua(d, btn, card); });
+    head.appendChild(num);
+    head.appendChild(title);
+    head.appendChild(btn);
+    card.appendChild(head);
+
+    var list = el("ol", "phrases");
+    d.phrases.forEach(function (p) {
+      var li = el("li");
+      var ar = el("span", "ar", p[0]);
+      ar.lang = "ar";
+      li.appendChild(ar);
+      li.appendChild(el("span", "en", p[1]));
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+
+    if (d.note) {
+      var note = el("div", "note");
+      note.appendChild(el("div", "note-label", "Commentary"));
+      note.appendChild(el("p", null, d.note));
+      card.appendChild(note);
+    }
+    return card;
+  }
+
+  function show(id, focus) {
+    var found = TABS.some(function (t) { return t.id === id; });
+    if (!found) id = TABS[0].id;
+    Array.prototype.forEach.call(tabsEl.children, function (b) {
+      var on = b.dataset.tab === id;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    panelEl.textContent = "";
+    panelEl.setAttribute("aria-labelledby", "tab-" + id);
+    DUAS.filter(function (d) { return d.tab === id; }).forEach(function (d) {
+      panelEl.appendChild(renderDua(d));
+    });
+    try { history.replaceState(null, "", "#" + id); } catch (e) {}
+  }
+
+  TABS.forEach(function (t, i) {
+    var b = el("button", "tab");
+    b.type = "button";
+    b.id = "tab-" + t.id;
+    b.dataset.tab = t.id;
+    b.setAttribute("role", "tab");
+    b.appendChild(el("span", null, t.label));
+    b.appendChild(el("span", "count", String(DUAS.filter(function (d) { return d.tab === t.id; }).length)));
+    b.addEventListener("click", function () { show(t.id, false); });
+    b.addEventListener("keydown", function (e) {
+      var step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      show(TABS[(i + step + TABS.length) % TABS.length].id, true);
+    });
+    tabsEl.appendChild(b);
+  });
+
+  var start = "";
+  try { start = (location.hash || "").replace(/^#/, ""); } catch (e) {}
+  show(start, false);
+  window.addEventListener("hashchange", function () {
+    var h = (location.hash || "").replace(/^#/, "");
+    if (h) show(h, false);
+  });
+})();
+</script>
+
+</body></html>
